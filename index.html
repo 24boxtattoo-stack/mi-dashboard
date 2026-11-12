@@ -35,7 +35,7 @@
     <!-- Columna Izquierda: Google Calendar -->
     <div class="card">
       <h2>📅 Agenda & Eventos</h2>
-      <iframe src="TU_LINK_EMBEBIDO_DE_GOOGLE_CALENDAR"></iframe>
+      <iframe src="https://calendar.google.com/calendar/embed?src=es.cl%23holiday%40group.v.calendar.google.com&ctz=America%2FSantiago"></iframe>
     </div>
 
     <!-- Columna Derecha: Spotify -->
@@ -46,26 +46,37 @@
   </div>
 
   <script>
-    // Reloj en tiempo real
+    // Reloj compatible con versiones antiguas de JS (ES5)
     function actualizarReloj() {
-      const ahora = new Date();
-      document.getElementById('reloj').innerText = ahora.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      var ahora = new Date();
+      var horas = ahora.getHours();
+      var minutos = ahora.getMinutes();
+      var ampm = horas >= 12 ? 'p. m.' : 'a. m.';
+      
+      horas = horas % 12;
+      horas = horas ? horas : 12; // Formato 12 horas
+      minutos = minutos < 10 ? '0' + minutos : minutos;
+
+      document.getElementById('reloj').innerHTML = horas + ':' + minutos + ' ' + ampm;
     }
     setInterval(actualizarReloj, 1000);
     actualizarReloj();
 
-    // Obtener Clima de Puente Alto
-    async function obtenerClima() {
-      try {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-33.6167&longitude=-70.575&current_weather=true');
-        const data = await res.json();
-        document.getElementById('temp').innerText = `${Math.round(data.current_weather.temperature)}°C`;
-      } catch (e) {
-        document.getElementById('temp').innerText = 'Err';
-      }
+    // Clima compatible mediante XMLHttpRequest tradicional (sin fetch)
+    function obtenerClima() {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://api.open-meteo.com/v1/forecast?latitude=-33.6167&longitude=-70.575&current_weather=true', true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var data = JSON.parse(xhr.responseText);
+          var temp = Math.round(data.current_weather.temperature);
+          document.getElementById('temp').innerHTML = temp + '°C';
+        }
+      };
+      xhr.send();
     }
     obtenerClima();
-    setInterval(obtenerClima, 600000); // Actualiza cada 10 min
+    setInterval(obtenerClima, 600000); // Cada 10 minutos
   </script>
 </body>
 </html>
