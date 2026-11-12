@@ -10,12 +10,11 @@
     body { background-color: #0d1117; color: #f0f6fc; padding: 15px; height: 100vh; overflow: hidden; }
     
     /* Header */
-    header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d; }
+    header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d; height: 75px; }
     .clock { font-size: 2.2rem; font-weight: 700; color: #ffffff; }
-    .weather { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
 
     /* Grid Layout */
-    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: calc(100vh - 100px); }
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: calc(100vh - 120px); }
     .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; }
     .card h2 { font-size: 1rem; color: #8b949e; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -25,9 +24,10 @@
 <body>
 
   <header>
-    <div class="clock" id="reloj">00:00 AM</div>
-    <div class="weather">
-      <span>📍 Puente Alto, CL</span> | <span id="temp">--°C</span>
+    <div class="clock" id="reloj">--:--</div>
+    <div style="width: 250px; height: 60px; overflow: hidden;">
+      <!-- Widget de Clima embebido estable -->
+      <iframe src="https://wttr.in/Puente+Alto?0&q&T&lang=es" style="width:100%; height:120px; border:none; margin-top:-20px;"></iframe>
     </div>
   </header>
 
@@ -46,56 +46,18 @@
   </div>
 
   <script>
-    // Reloj compatible con versiones antiguas de JS (ES5)
     function actualizarReloj() {
       var ahora = new Date();
-      var horas = ahora.getHours();
-      var minutos = ahora.getMinutes();
-      var ampm = horas >= 12 ? 'p. m.' : 'a. m.';
-      
-      horas = horas % 12;
-      horas = horas ? horas : 12; // Formato 12 horas
-      minutos = minutos < 10 ? '0' + minutos : minutos;
-
-      document.getElementById('reloj').innerHTML = horas + ':' + minutos + ' ' + ampm;
+      var h = ahora.getHours();
+      var m = ahora.getMinutes();
+      var ampm = h >= 12 ? 'p. m.' : 'a. m.';
+      h = h % 12;
+      h = h ? h : 12;
+      m = m < 10 ? '0' + m : m;
+      document.getElementById('reloj').innerHTML = h + ':' + m + ' ' + ampm;
     }
     setInterval(actualizarReloj, 1000);
     actualizarReloj();
-
-    // Clima compatible mediante XMLHttpRequest tradicional (sin fetch)
-    function obtenerClima() {
-      var xhr = new XMLHttpRequest();
-      // Usamos el servicio wttr.in en formato JSON (muy liviano y altamente compatible)
-      xhr.open('GET', 'https://wttr.in/Puente+Alto?format=j1', true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            try {
-              var data = JSON.parse(xhr.responseText);
-              var temp = data.current_condition[0].temp_C;
-              document.getElementById('temp').innerHTML = temp + '°C';
-            } catch(e) {
-              document.getElementById('temp').innerHTML = 'N/A';
-            }
-          } else {
-            // Si falla wttr.in, intenta con el respaldo de Open-Meteo
-            obtenerClimaRespaldo();
-          }
-        }
-      };
-      xhr.send();
-    }
-
-    function obtenerClimaRespaldo() {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'https://api.open-meteo.com/v1/forecast?latitude=-33.6167&longitude=-70.575&current_weather=true', true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          var data = JSON.parse(xhr.responseText);
-          var temp = Math.round(data.current_weather.temperature);
-          document.getElementById('temp').innerHTML = temp + '°C';
-        }
-      };
-      xhr.send();
-    }</body>
+  </script>
+</body>
 </html>
