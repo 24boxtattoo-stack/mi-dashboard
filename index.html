@@ -10,8 +10,9 @@
     body { background-color: #0d1117; color: #f0f6fc; padding: 15px; height: 100vh; overflow: hidden; }
     
     /* Header */
-    header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d; height: 75px; }
+    header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d; height: 75px; }
     .clock { font-size: 2.2rem; font-weight: 700; color: #ffffff; }
+    .weather { font-size: 1.3rem; font-weight: 600; display: flex; align-items: center; gap: 10px; color: #58a6ff; }
 
     /* Grid Layout */
     .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: calc(100vh - 120px); }
@@ -25,12 +26,8 @@
 
   <header>
     <div class="clock" id="reloj">--:--</div>
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <span style="color: #8b949e; font-size: 1.1rem;">📍 Puente Alto, CL</span>
-      <!-- Widget Clima Meteored ligero en modo oscuro -->
-      <div id="cont_67890" style="background: transparent;">
-        <iframe src="https://www.meteored.cl/getwid/28578" style="width: 240px; height: 60px; border: none; overflow: hidden;" scrolling="no"></iframe>
-      </div>
+    <div class="weather">
+      <span style="color: #f0f6fc;">📍 Puente Alto, CL</span> | <span id="temp">Cargando...</span>
     </div>
   </header>
 
@@ -49,6 +46,7 @@
   </div>
 
   <script>
+    // 1. Reloj en tiempo real
     function actualizarReloj() {
       var ahora = new Date();
       var h = ahora.getHours();
@@ -61,6 +59,30 @@
     }
     setInterval(actualizarReloj, 1000);
     actualizarReloj();
+
+    // 2. Clima vía JSONP (Evita bloqueos CORS y SSL de navegadores antiguos)
+    function mostrarClima(data) {
+      if (data && data.current_condition && data.current_condition[0]) {
+        var temp = data.current_condition[0].temp_C;
+        var desc = data.current_condition[0].lang_es ? data.current_condition[0].lang_es[0].value : '';
+        document.getElementById('temp').innerHTML = temp + '°C ' + desc;
+      }
+    }
+
+    function cargarClima() {
+      var scriptAntiguo = document.getElementById('script-clima');
+      if (scriptAntiguo) {
+        scriptAntiguo.parentNode.removeChild(scriptAntiguo);
+      }
+      var script = document.createElement('script');
+      script.id = 'script-clima';
+      // Usamos protocolo relativo o HTTP directo para evitar rechazo de certificado en Android 4
+      script.src = 'http://wttr.in/Puente+Alto?format=j1&lang=es&callback=mostrarClima';
+      document.body.appendChild(script);
+    }
+
+    cargarClima();
+    setInterval(cargarClima, 600000); // Actualiza cada 10 min
   </script>
 </body>
 </html>
