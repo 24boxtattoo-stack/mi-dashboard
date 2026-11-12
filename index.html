@@ -65,6 +65,29 @@
     // Clima compatible mediante XMLHttpRequest tradicional (sin fetch)
     function obtenerClima() {
       var xhr = new XMLHttpRequest();
+      // Usamos el servicio wttr.in en formato JSON (muy liviano y altamente compatible)
+      xhr.open('GET', 'https://wttr.in/Puente+Alto?format=j1', true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              var data = JSON.parse(xhr.responseText);
+              var temp = data.current_condition[0].temp_C;
+              document.getElementById('temp').innerHTML = temp + '°C';
+            } catch(e) {
+              document.getElementById('temp').innerHTML = 'N/A';
+            }
+          } else {
+            // Si falla wttr.in, intenta con el respaldo de Open-Meteo
+            obtenerClimaRespaldo();
+          }
+        }
+      };
+      xhr.send();
+    }
+
+    function obtenerClimaRespaldo() {
+      var xhr = new XMLHttpRequest();
       xhr.open('GET', 'https://api.open-meteo.com/v1/forecast?latitude=-33.6167&longitude=-70.575&current_weather=true', true);
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -74,9 +97,5 @@
         }
       };
       xhr.send();
-    }
-    obtenerClima();
-    setInterval(obtenerClima, 600000); // Cada 10 minutos
-  </script>
-</body>
+    }</body>
 </html>
